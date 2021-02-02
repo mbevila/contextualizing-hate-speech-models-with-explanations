@@ -362,8 +362,8 @@ class _SamplingAndOcclusionAlgo(_SamplingAndOcclusionBaseAlgo):
         inp_enb_mask = inp_enb_mask.expand(inp_enb.size(0), -1)
         segment_ids = segment_ids.expand(inp_enb.size(0), -1)
 
-        logits_enb = self.model(inp_enb, segment_ids[:, :inp_enb.size(1)], inp_enb_mask)
-        logits_ex = self.model(inp_ex, segment_ids[:, :inp_ex.size(1)], inp_ex_mask)
+        logits_enb = self.model(inp_enb, segment_ids[:, :inp_enb.size(1)], inp_enb_mask).logits
+        logits_ex = self.model(inp_ex, segment_ids[:, :inp_ex.size(1)], inp_ex_mask).logits
 
         if type(logits_enb) is tuple:
             logits_enb = logits_enb[0]
