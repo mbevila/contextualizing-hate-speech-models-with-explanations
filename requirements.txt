@@ -1,0 +1,7 @@
+transformers
+nltk
+numpy
+scikit-learn
+scikit-image
+matplotlib
+torchtext

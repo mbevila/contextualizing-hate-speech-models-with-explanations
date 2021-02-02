@@ -44,9 +44,7 @@ from scipy.stats import pearsonr, spearmanr
 from sklearn.metrics import matthews_corrcoef, f1_score
 from sklearn.metrics import precision_score, recall_score, roc_auc_score
 
-from bert.file_utils import PYTORCH_PRETRAINED_BERT_CACHE, WEIGHTS_NAME, CONFIG_NAME
-from bert.modeling import BertForSequenceClassification, BertConfig
-from bert.tokenization import BertTokenizer
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from bert.optimization import BertAdam, WarmupLinearSchedule
 
 from loader import GabProcessor, WSProcessor, NytProcessor, convert_examples_to_features
@@ -315,7 +313,7 @@ def main():
     if task_name not in processors:
         raise ValueError("Task not found: %s" % (task_name))
 
-    tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case=args.do_lower_case)
+    tokenizer = AutoTokenizer.from_pretrained(args.bert_model, do_lower_case=args.do_lower_case)
     processor = processors[task_name](configs, tokenizer=tokenizer)
     output_mode = output_modes[task_name]
 
@@ -332,14 +330,10 @@ def main():
             num_train_optimization_steps = num_train_optimization_steps // torch.distributed.get_world_size()
 
     # Prepare model
-    cache_dir = args.cache_dir if args.cache_dir else os.path.join(str(PYTORCH_PRETRAINED_BERT_CACHE),
-                                                                   'distributed_{}'.format(args.local_rank))
     if args.do_train:
-        model = BertForSequenceClassification.from_pretrained(args.bert_model,
-                                                              cache_dir=cache_dir,
-                                                              num_labels=num_labels)
+        model = AutoModelForSequenceClassification.from_pretrained(args.bert_model, num_labels=num_labels)
     else:
-        model = BertForSequenceClassification.from_pretrained(args.output_dir, num_labels=num_labels)
+        model = AutoModelForSequenceClassification.from_pretrained(args.output_dir, num_labels=num_labels)
     model.to(device)
 
     if args.fp16:
@@ -723,8 +717,8 @@ def save_model(args, model, tokenizer, num_labels):
     model_to_save = model.module if hasattr(model, 'module') else model  # Only save the model it-self
 
     # If we save using the predefined names, we can load using `from_pretrained`
-    output_model_file = os.path.join(args.output_dir, WEIGHTS_NAME)
-    output_config_file = os.path.join(args.output_dir, CONFIG_NAME)
+    output_model_file = os.path.join(args.output_dir, 'model.pkl')
+    output_config_file = os.path.join(args.output_dir, 'model.json')
 
     torch.save(model_to_save.state_dict(), output_model_file)
     model_to_save.config.to_json_file(output_config_file)

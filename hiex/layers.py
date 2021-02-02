@@ -31,11 +31,11 @@ class DynamicEncoder(nn.Module):
         embedded = embedded.transpose(0, 1)  # [B,T,E]
         sort_idx = np.argsort(-input_lens)
         unsort_idx = torch.LongTensor(np.argsort(sort_idx))
-        if self.gpu >= 0:
+        if self.gpu > 0:
             unsort_idx = unsort_idx.to(self.gpu)
         input_lens = input_lens[sort_idx]
         sort_idx = torch.LongTensor(sort_idx)
-        if self.gpu >= 0:
+        if self.gpu > 0:
             sort_idx = sort_idx.to(self.gpu)
         embedded = embedded[sort_idx].transpose(0, 1)  # [T,B,E]
         packed = torch.nn.utils.rnn.pack_padded_sequence(embedded, input_lens)
